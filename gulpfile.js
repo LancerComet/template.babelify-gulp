@@ -22,7 +22,7 @@ const appConfig = {
     dist: "./dist"
 };
 
-gulp.task("default", ["build", "watch"]);  // Default Task. | 默认任务.
+gulp.task("default", ["watch"]);  // Default Task. | 默认任务.
 gulp.task("build", buildFunc);  // Project Building Task. | 构建任务.
 gulp.task("watch", buildFunc.bind(null, true));  // Files Watching Task. | 文件改动监视任务.
 
@@ -30,7 +30,7 @@ gulp.task("watch", buildFunc.bind(null, true));  // Files Watching Task. | 文�
 
 function buildFunc (watch) {
     var bundler = watchify(
-        browserify(appConfig.entry, { debug: false })
+        browserify(appConfig.entry, { debug: true })
             .transform("babelify", { presets: ["es2015"] })
     );
     
@@ -52,7 +52,7 @@ function buildFunc (watch) {
             })
             .pipe(source("app.js"))
             .pipe(buffer())
-            .pipe(sourcemaps.init())
+            .pipe(sourcemaps.init({ loadMaps: true }))
             .pipe(sourcemaps.write("."))
             .pipe(gulp.dest(appConfig.dist));
     }
