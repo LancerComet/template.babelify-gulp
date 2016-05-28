@@ -36,10 +36,7 @@ function buildFunc (watch) {
     
     
     if (watch) {
-        bundler.on("update", () => {
-            bundle();
-        });
-        
+        bundler.on("update", bundle);
         bundler.on("log", util.log);
     }
     
