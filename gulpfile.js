@@ -44,7 +44,7 @@ function buildFunc (watch) {
         bundler
             .bundle()
             .on("error", function (err) {
-                console.error(err);
+                console.error(err.toString());
                 this.emit("end");
             })
             .pipe(source("app.js"))
