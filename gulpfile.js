@@ -26,10 +26,12 @@ gulp.task("default", ["js-build"]);  // Default Task. | 默认任务.
 
 (function jsTasks () {
     
-    var bundler = watchify(
-        browserify(appConfig.entry, { debug: true })
-            .transform("babelify", { presets: ["es2015"] })
-    );
+    var bundler = browserify(appConfig.entry, { 
+        debug: true,
+        cache: {},
+        packageCache: {},
+        plugin: [watchify]
+    }).transform("babelify", { presets: ["es2015"] });
     
     bundler.on("update", bundle);
     bundler.on("log", util.log);
