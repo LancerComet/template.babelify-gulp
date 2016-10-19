@@ -4,118 +4,105 @@
  *  ---
  *  Gulpfile.
  */
-const gulp = require("gulp");
-const util = require("gulp-util");
-const rename = require("gulp-rename");
+const fs = require("fs")
+const gulp = require("gulp")
+const gulpUtil = require("gulp-util")
+const rename = require("gulp-rename")
 
-const browserify = require("browserify");
-const cssify = require("cssify");
-const envify = require("envify/custom");
-const jadeify = require("jadeify");
-const sourcemaps = require("gulp-sourcemaps");
-const stylify = require("stylify");
-const watchify = require("watchify");
+const browserify = require("browserify")
+const cssify = require("cssify")
+const envify = require("envify/custom")
+const jadeify = require("jadeify")
+const sourcemaps = require("gulp-sourcemaps")
+const requireAsync = require("browserify-require-async")
+const stylify = require("stylify")
+const through = require("through")
+const watchify = require("watchify")
 
-const source = require("vinyl-source-stream");
-const buffer = require("vinyl-buffer");
+const source = require("vinyl-source-stream")
+const buffer = require("vinyl-buffer")
+
+const utils = require('./utils')
 
 /**
  * App Configuration
  * @type { Object }
  */
 const appConfig = {
-    entry: ["./src/app.js"],
-    dist: "./dist",
-};
+  entry: ["./src/app.js"],
+  dist: "./dist",
+}
 
 /**
  * Babel Configuration.
  * @type { Object }
  */
 const babelConfig = { 
-    presets: ["es2015", "stage-2"]
-};
+  presets: ["es2015", "stage-2"]
+}
 
 /**
  * Default Task defination.
  */
-gulp.task("default", ["js:dev"]);
+gulp.task("default", ["js:dev"])
 
 /**
  * JS Tasks Configuration.
  * All tasks deal with javascript will be set in here.
  */
-(function jsTasks () {
+;(function jsTasks () {
 
-    /**
-     * Task for development. It will watch whole project and keep bundling.
-     */
-    gulp.task("js:dev", function () {
-        const bundler = createBundler({
-            envs: { NODE_ENV: 'development' }
-        });
+  /**
+   * Task for development. It will watch whole project and keep bundling.
+   */
+  gulp.task("js:dev", function () {
+      const bundler = createBundler({
+        envs: { NODE_ENV: 'development' }
+      })
 
-        bundler
-            .on("update", buildExec.bind(null, bundler))
-            .on("log", util.log)
-            .on("error", function (err) {
-                console.error(err.toString());
-                this.emit("end");
-            });
+      bundler
+        .on("update", buildExec.bind(null, bundler))
+        .on("log", gulpUtil.log)
+        .on("error", function (err) {
+          console.error(err.toString())
+          this.emit("end")
+        })
 
-        return buildExec(bundler);
-    });
+      return buildExec(bundler)
+  })
 
-    /**
-     * Task for bundle only. It will exit when bundling finished.
-     */
-    gulp.task('js:build', function () {
-        const bundler = createBundler({ 
-            isDebug: false,
-            isWatchify: false,            
-            envs: { NODE_ENV: 'production' }
-        });
+  /**
+   * Task for bundle only. It will exit when bundling finished.
+   */
+  gulp.task('js:build', function () {
+      const bundler = createBundler({ 
+        isDebug: false,
+        isWatchify: false,           
+        isUglify: true,
+        envs: { NODE_ENV: 'production' }
+      })
 
-        bundler
-            .on("log", util.log)
-            .on("error", function (err) {
-                console.error(err.toString());
-                this.emit("end");
-            });
+      bundler
+        .on("log", gulpUtil.log)
+        .on("error", function (err) {
+          console.error(err.toString())
+          this.emit("end")
+        })
 
-        return buildExec(bundler, true);
-    });
+      return buildExec(bundler)
+  })
 
-    /**
-     * Building Function.
-     */
-    function buildExec (bundler, uglify = false) {
-        if (uglify) {
-            bundler = bundler.plugin("minifyify", {
-                map: false,
-                uglify: {
-                    compress: {
-                        drop_console: true,
-                        dead_code: true,
-                        conditionals: true,
-                        unused: true,
-                        if_return: true,
-                        global_defs: {
-                            DEBUG: false
-                        }
-                    },
-                    mangle: true
-                }
-            })
-        }
-
-        return bundler
-            .bundle(function () {})
-            .pipe(source("app.dist.js"))
-            .pipe(buffer())
-            .pipe(sourcemaps.write("."))
-            .pipe(gulp.dest(appConfig.dist));
-    }
+  /**
+   * Building Function.
+   */
+  function buildExec (bundler) {
+      return bundler
+        .bundle(function () {})  // Empty function for using minifyify.
+        .pipe(source("app.dist.js"))
+        .pipe(buffer())
+        .pipe(sourcemaps.write("."))
+        .pipe(gulp.dest(appConfig.dist))
+  }
     
 })();
 
@@ -124,25 +111,80 @@ gulp.task("default", ["js:dev"]);
 /**
  * Create Browserify bundler object.
  * @typedef { Object } confObj
- * @prop { Boolean } isDebug
- * @prop { Boolean } isWatchify
- * @prop { Object } envs
+ * @prop { Boolean } isDebug Enable Debug Support.
+ * @prop { Boolean } isWatchify Enable Watchify Support.
+ * @prop { Boolean } isUglify Enable Uglify.
+ * @prop { Object } envs Enviroument variables.
  * 
  * @param { confObj }
  */
-function createBundler ({ isDebug = true, isWatchify = true, envs = { NODE_ENV: 'development' } }) {
-    const config = {
-        entries: appConfig.entry,
-        debug: isDebug,
-        cache: {},
-        packageCache: {},
-        plugin: []
-    };
-    isWatchify && config.plugin.push(watchify);
-    return new browserify(config)
-        .transform("babelify", babelConfig)
+function createBundler ({ isDebug = true, isWatchify = true, isUglify = false, envs = { NODE_ENV: 'development' } }) {
+  const browserifyConfig = {
+    entries: appConfig.entry,
+    debug: isDebug,
+    cache: {},
+    packageCache: {},
+    plugin: []
+  }
+
+  const minifyConfig = {
+    map: false, 
+    uglify: {
+      compress: {
+        drop_console: true,
+        dead_code: true,
+        conditionals: true,
+        unused: true,
+        if_return: true,
+        global_defs: {
+            DEBUG: false
+        }
+      },
+      mangle: true
+    }
+  }
+
+  isWatchify && browserifyConfig.plugin.push(watchify)
+
+  const bundler = new browserify(browserifyConfig)
+    .transform(utils.es6Promise)
+    .transform('babelify', babelConfig)
+
+    // Configuration for code splitting build tasks.
+    .transform(requireAsync, {
+      url: '/dist/chunks',
+      outputDir: './dist/chunks',
+      setup () {
+        const bConfig = browserifyConfig
+        delete bConfig.entries
+
+        isWatchify && bConfig.plugin.push(watchify)        
+
+        const b = browserify(bConfig)
+          .transform('babelify', babelConfig)
+          .on("log", gulpUtil.log)
+          .on("error", function (err) {
+            console.error(err.toString())
+            this.emit("end")
+          })
+
+        isWatchify && b.on('update', function () { b.bundle() })
+        isUglify && b.plugin("minifyify", minifyConfig)
+
+        return commonTransforms(b)
+      }
+    })
+
+    isUglify && bundler.plugin("minifyify", minifyConfig)
+
+    return commonTransforms(bundler)
+
+    // Define common transformers here.
+    function commonTransforms (bundler) {
+      return bundler
         .transform(envify(envs))
         .transform(cssify)
         .transform(jadeify)
-        .transform(stylify);
+        .transform(stylify)
+    }
 }

@@ -1,9 +1,8 @@
-import { greeting } from "./hello-es2015.js";
-const stylString = require('./style.styl')
-const component = require('./component.jade')
+import stylusString from './style/index.styl';
+import insertCss from 'insert-css';
 
-window.TEST = process.env.NODE_ENV
+insertCss(stylusString);
 
-document.body.innerHTML = component({
-    greeting
+require.async('./module/lazy', function (lazy) {
+  lazy()
 });

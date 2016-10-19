@@ -1,2 +1,1 @@
-const greeting = "Hello, ES2015 Project!";
-export {greeting};
+module.exports = "Hello, ES2015 Project!";
