@@ -1,3 +1,9 @@
-import {greeting} from "./hello-es2015.js";
+import { greeting } from "./hello-es2015.js";
+const stylString = require('./style.styl')
+const component = require('./component.jade')
 
-document.body.innerHTML = `<h1>${greeting}</h1>`;
+window.TEST = process.env.NODE_ENV
+
+document.body.innerHTML = component({
+    greeting
+});
