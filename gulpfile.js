@@ -37,7 +37,7 @@ const babelConfig = {
 };
 
 /**
- * Default Task Setup.
+ * Default Task defination.
  */
 gulp.task("default", ["js:dev"]);
 
@@ -52,8 +52,6 @@ gulp.task("default", ["js:dev"]);
      */
     gulp.task("js:dev", function () {
         const bundler = createBundler({
-            isDebug: true,
-            isWatchify: true,
             envs: { NODE_ENV: 'development' }
         });
 
@@ -74,6 +72,7 @@ gulp.task("default", ["js:dev"]);
     gulp.task('js:build', function () {
         const bundler = createBundler({ 
             isDebug: false,
+            isWatchify: false,            
             envs: { NODE_ENV: 'production' }
         });
 
@@ -131,7 +130,7 @@ gulp.task("default", ["js:dev"]);
  * 
  * @param { confObj }
  */
-function createBundler ({ isDebug = false, isWatchify = false, envs = { NODE_ENV: 'development' } }) {
+function createBundler ({ isDebug = true, isWatchify = true, envs = { NODE_ENV: 'development' } }) {
     const config = {
         entries: appConfig.entry,
         debug: isDebug,
