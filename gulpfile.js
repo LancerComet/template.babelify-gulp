@@ -13,14 +13,10 @@ const browserify = require("browserify")
 const cssify = require("cssify")
 const envify = require("envify/custom")
 const jadeify = require("jadeify")
-const sourcemaps = require("gulp-sourcemaps")
 const requireAsync = require("browserify-require-async")
 const stylify = require("stylify")
 const through = require("through")
 const watchify = require("watchify")
-
-const source = require("vinyl-source-stream")
-const buffer = require("vinyl-buffer")
 
 const utils = require('./utils')
 
@@ -29,8 +25,9 @@ const utils = require('./utils')
  * @type { Object }
  */
 const appConfig = {
-  entry: ["./src/app.js"],
-  dist: "./dist",
+  entry: ['./src/app.js'],
+  dist: './dist',
+  distFileName: 'app.dist.js'
 }
 
 /**
@@ -96,12 +93,9 @@ gulp.task("default", ["js:dev"])
    * Building Function.
    */
   function buildExec (bundler) {
-      return bundler
-        .bundle(function () {})  // Empty function for using minifyify.
-        .pipe(source("app.dist.js"))
-        .pipe(buffer())
-        .pipe(sourcemaps.write("."))
-        .pipe(gulp.dest(appConfig.dist))
+    return bundler
+      .bundle(function () {})  // Empty function for using minifyify.
+      .pipe(fs.createWriteStream(`${appConfig.dist}/${appConfig.distFileName}`))
   }
     
 })();
@@ -157,8 +151,8 @@ function createBundler ({ isDebug = true, isWatchify = true, isUglify = false, e
       setup () {
         const bConfig = browserifyConfig
         delete bConfig.entries
-
-        isWatchify && bConfig.plugin.push(watchify)        
+        delete bConfig.cache
+        delete bConfig.packageCache
 
         const b = browserify(bConfig)
           .transform('babelify', babelConfig)

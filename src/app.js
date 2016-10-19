@@ -1,5 +1,5 @@
-import stylusString from './style/index.styl';
 import insertCss from 'insert-css';
+import stylusString from './style/index.styl';
 
 insertCss(stylusString);
 
