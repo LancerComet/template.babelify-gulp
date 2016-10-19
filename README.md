@@ -2,7 +2,7 @@
 An quick starter for using browserify and gulp.
 
 ## Contains
- - Babel with ES2015 & Stage presets.
+ - Babel with ES2015 & Stage 2 presets.
  - Cssify for requiring css files.
  - Envify for using "process.env".
  - Gulp.
