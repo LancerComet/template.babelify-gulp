@@ -5,20 +5,24 @@
  *  Gulpfile.
  */
 const fs = require("fs")
+const path = require('path')
+
 const gulp = require("gulp")
 const gulpUtil = require("gulp-util")
 const rename = require("gulp-rename")
 
+const aliasify = require("aliasify")
 const browserify = require("browserify")
-const cssify = require("cssify")
 const envify = require("envify/custom")
 const jadeify = require("jadeify")
+const partialify = require("partialify/custom")
 const requireAsync = require("browserify-require-async")
 const stylify = require("stylify")
 const through = require("through")
 const watchify = require("watchify")
 
 const utils = require('./utils')
+const rootPath = path.resolve(__dirname, '.')
 
 /**
  * App Configuration
@@ -176,8 +180,20 @@ function createBundler ({ isDebug = true, isWatchify = true, isUglify = false, e
     // Define common transformers here.
     function commonTransforms (bundler) {
       return bundler
+        .transform(aliasify, {
+          aliases: {
+            'src': rootPath + '/src'
+          }
+        })
+        .transform(partialify.onlyAllow(['json', 'xml']))
+        .transform('browserify-postcss', {
+          plugin: [
+            ['postcss-assets', [
+              ['loadPaths', [rootPath + '/src']]
+            ]]
+          ]
+        })
         .transform(envify(envs))
-        .transform(cssify)
         .transform(jadeify)
         .transform(stylify)
     }
