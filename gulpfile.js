@@ -13,6 +13,7 @@ const rename = require("gulp-rename")
 
 const aliasify = require("aliasify")
 const browserify = require("browserify")
+const cssify = require("cssify")
 const envify = require("envify/custom")
 const jadeify = require("jadeify")
 const partialify = require("partialify/custom")
@@ -29,8 +30,10 @@ const rootPath = path.resolve(__dirname, '.')
  * @type { Object }
  */
 const appConfig = {
-  entry: ['./src/app.js'],
-  dist: './dist',
+  entry: [`${rootPath}/src/app.js`],
+  srcPath: `${rootPath}/src`,
+  distPath: `${rootPath}/dist`,
+  assetsPath: `${rootPath}/dist/assets`,
   distFileName: 'app.dist.js'
 }
 
@@ -99,7 +102,7 @@ gulp.task("default", ["js:dev"])
   function buildExec (bundler) {
     return bundler
       .bundle(function () {})  // Empty function for using minifyify.
-      .pipe(fs.createWriteStream(`${appConfig.dist}/${appConfig.distFileName}`))
+      .pipe(fs.createWriteStream(`${appConfig.distPath}/${appConfig.distFileName}`))
   }
     
 })();
@@ -186,15 +189,24 @@ function createBundler ({ isDebug = true, isWatchify = true, isUglify = false, e
           }
         })
         .transform(partialify.onlyAllow(['json', 'xml']))
-        .transform('browserify-postcss', {
-          plugin: [
-            ['postcss-assets', [
-              ['loadPaths', [rootPath + '/src']]
-            ]]
-          ]
-        })
         .transform(envify(envs))
+        .transform('browserify-postcss', {
+          // Define postcss plugins if needed.
+          plugin: [
+            ['postcss-custom-url', [
+              ['copy', {
+                assetOutFolder: appConfig.assetsPath,
+                baseUrl: '/assets',
+                name: '[name].[hash]'
+              }]
+            ]],
+            ['autoprefixer', { browsers: ['> 1%', 'last 3 versions', 'Firefox ESR', "ie 8", "ie 9"] }]
+          ],
+          basedir: appConfig.srcPath,
+          inject: true  // false: Style files will be required as string and must be inserted to html maunally. 
+        })
+        .transform(cssify)
         .transform(jadeify)
-        .transform(stylify)
+        .transform(utils.applyCSS)
     }
 }

@@ -1,8 +1,11 @@
 import insertCss from 'insert-css';
-import stylusString from './style/index.styl';
+const cssStyle = require('./style/index.css')
 
-insertCss(stylusString);
+console.log(cssStyle)
+insertCss(cssStyle);
 
 require.async('./module/lazy', function (lazy) {
   lazy()
 });
+
+console.log('greeting')
