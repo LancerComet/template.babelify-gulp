@@ -1,6 +1,6 @@
 {
   "name": "babelify-gulp-starter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An ES2015 quick starter for using browserify and gulp.",
   "keywords": [
     "gulp",
