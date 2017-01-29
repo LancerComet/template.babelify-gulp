@@ -1,5 +1,8 @@
+process.env.NODE_ENV = 'testing'
+
 const path = require('path')
 const aliasify = require("aliasify")
+const envify = require("envify/custom")
 const projectRoot = path.resolve(__dirname, '../')
 
 module.exports = function (config) {
@@ -35,6 +38,7 @@ module.exports = function (config) {
           bundle
             .transform('babelify', { presets: ['es2015', 'stage-2'] })
             .transform(aliasify, { aliases: { 'src': projectRoot + '/src' } })
+            .transform(envify({ NODE_ENV: 'testing' }))
         })
       }
     }

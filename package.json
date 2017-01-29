@@ -9,7 +9,13 @@
     "quick",
     "starter"
   ],
-  "author": "LancerComet",
+  "author": {
+    "name": "LancerComet",
+    "email": "chw644@hotmail.com"
+  },
+  "scripts": {
+    "test": "karma start ./test/karma.conf.js --single-run"
+  },
   "license": "MIT",
   "devDependencies": {
     "aliasify": "^2.0.0",
@@ -52,7 +58,6 @@
     "watchify": "^3.7.0"
   },
   "dependencies": {
-    "es6-promise": "^4.0.5",
     "insert-css": "^1.0.0"
   }
 }

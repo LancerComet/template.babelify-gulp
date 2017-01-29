@@ -148,7 +148,6 @@ function createBundler ({ isDebug = true, isWatchify = true, isUglify = false, e
   isWatchify && browserifyConfig.plugin.push(watchify)
 
   const bundler = new browserify(browserifyConfig)
-    .transform(utils.es6Promise)
     .transform('babelify', babelConfig)
 
     // Configuration for code splitting build tasks.
